@@ -1,0 +1,12 @@
+target/
+.mvn/
+*.log
+.DS_Store
+node_modules/
+dist/
+*.iml
+.idea/
+.vscode/
+.env
+.env.local
+README.md
