@@ -1,5 +1,6 @@
 package com.interviewsync.dto;
 
+import com.interviewsync.entity.InterviewType;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import lombok.Builder;
@@ -12,5 +13,11 @@ public class InterviewSlotResponse {
     LocalDate date;
     LocalTime startTime;
     LocalTime endTime;
-    boolean available;
+    InterviewType interviewType;
+    String location;
+    int maxCandidates;
+    int bookedCount;
+    int availableSeats;
+    Long createdById;
+    String createdByName;
 }

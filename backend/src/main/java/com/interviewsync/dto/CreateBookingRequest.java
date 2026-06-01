@@ -6,9 +6,6 @@ import lombok.Data;
 @Data
 public class CreateBookingRequest {
 
-    @NotNull
-    private Long userId;
-
-    @NotNull
+    @NotNull(message = "Interview slot ID is required")
     private Long interviewSlotId;
 }

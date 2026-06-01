@@ -1,13 +1,43 @@
 const API_BASE_URL = 'http://localhost:8080/api'
 
-export async function signup(name, email, password, role = 'CANDIDATE') {
-  const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+function getToken() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user'))
+    return user?.token || null
+  } catch {
+    return null
+  }
+}
+
+function authHeaders() {
+  const token = getToken()
+  const headers = { 'Content-Type': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  return headers
+}
+
+async function handleResponse(res) {
+  if (res.status === 401) {
+    localStorage.removeItem('user')
+    window.location.href = '/login'
+    throw new Error('Session expired. Please login again.')
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.message || `Request failed with status ${res.status}`)
+  }
+  const text = await res.text()
+  return text ? JSON.parse(text) : null
+}
+
+// Auth
+export async function register(fullName, email, password, role, phone, companyName) {
+  const res = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password, role })
+    body: JSON.stringify({ fullName, email, password, role, phone, companyName })
   })
-  if (!res.ok) throw new Error('Signup failed')
-  return res.json()
+  return handleResponse(res)
 }
 
 export async function login(email, password) {
@@ -16,48 +46,116 @@ export async function login(email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
   })
-  if (!res.ok) throw new Error('Login failed')
-  return res.json()
+  return handleResponse(res)
 }
 
-export async function fetchSlots() {
-  const res = await fetch(`${API_BASE_URL}/slots`)
-  if (!res.ok) throw new Error('Failed to fetch slots')
-  return res.json()
+// Slots
+export async function fetchSlots(availableOnly = false) {
+  const url = availableOnly ? `${API_BASE_URL}/slots?available=true` : `${API_BASE_URL}/slots`
+  const res = await fetch(url, { headers: authHeaders() })
+  return handleResponse(res)
 }
 
-export async function createSlot(date, startTime, endTime) {
+export async function fetchSlotById(id) {
+  const res = await fetch(`${API_BASE_URL}/slots/${id}`, { headers: authHeaders() })
+  return handleResponse(res)
+}
+
+export async function createSlot(data) {
   const res = await fetch(`${API_BASE_URL}/slots`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date, startTime, endTime, available: true })
+    headers: authHeaders(),
+    body: JSON.stringify(data)
   })
-  if (!res.ok) throw new Error('Failed to create slot')
-  return res.json()
+  return handleResponse(res)
 }
 
-export async function createBooking(userId, interviewSlotId) {
+export async function updateSlot(id, data) {
+  const res = await fetch(`${API_BASE_URL}/slots/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify(data)
+  })
+  return handleResponse(res)
+}
+
+export async function deleteSlot(id) {
+  const res = await fetch(`${API_BASE_URL}/slots/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders()
+  })
+  return handleResponse(res)
+}
+
+// Bookings
+export async function createBooking(interviewSlotId) {
   const res = await fetch(`${API_BASE_URL}/bookings`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, interviewSlotId })
+    headers: authHeaders(),
+    body: JSON.stringify({ interviewSlotId })
   })
-  if (!res.ok) throw new Error('Failed to create booking')
-  return res.json()
+  return handleResponse(res)
 }
 
-export async function getMyBookings(userId) {
-  const res = await fetch(`${API_BASE_URL}/bookings/my?userId=${userId}`)
-  if (!res.ok) throw new Error('Failed to fetch bookings')
-  return res.json()
+export async function fetchBookings() {
+  const res = await fetch(`${API_BASE_URL}/bookings`, { headers: authHeaders() })
+  return handleResponse(res)
 }
 
-export async function updateBookingStatus(bookingId, status) {
-  const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}/status`, {
+export async function fetchBookingById(id) {
+  const res = await fetch(`${API_BASE_URL}/bookings/${id}`, { headers: authHeaders() })
+  return handleResponse(res)
+}
+
+export async function cancelBooking(id) {
+  const res = await fetch(`${API_BASE_URL}/bookings/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders()
+  })
+  return handleResponse(res)
+}
+
+export async function acceptBooking(id) {
+  const res = await fetch(`${API_BASE_URL}/bookings/${id}/accept`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status })
+    headers: authHeaders()
   })
-  if (!res.ok) throw new Error('Failed to update booking status')
-  return res.json()
+  return handleResponse(res)
 }
+
+export async function rejectBooking(id) {
+  const res = await fetch(`${API_BASE_URL}/bookings/${id}/reject`, {
+    method: 'PUT',
+    headers: authHeaders()
+  })
+  return handleResponse(res)
+}
+
+export async function completeBooking(id) {
+  const res = await fetch(`${API_BASE_URL}/bookings/${id}/complete`, {
+    method: 'PUT',
+    headers: authHeaders()
+  })
+  return handleResponse(res)
+}
+
+// Dashboard
+export async function fetchDashboardStats() {
+  const res = await fetch(`${API_BASE_URL}/dashboard/stats`, { headers: authHeaders() })
+  return handleResponse(res)
+}
+
+// Candidates
+export async function getAllCandidates() {
+  const res = await fetch(`${API_BASE_URL}/auth/candidates`, { headers: authHeaders() })
+  return handleResponse(res)
+}
+
+export async function deleteCandidate(id) {
+  const res = await fetch(`${API_BASE_URL}/auth/candidates/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders()
+  })
+  return handleResponse(res)
+}
+

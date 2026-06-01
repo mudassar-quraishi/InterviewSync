@@ -1,7 +1,9 @@
 package com.interviewsync.dto;
 
 import com.interviewsync.entity.BookingStatus;
+import com.interviewsync.entity.InterviewType;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import lombok.Builder;
 import lombok.Value;
@@ -11,6 +13,7 @@ import lombok.Value;
 public class BookingResponse {
     Long id;
     BookingStatus status;
+    LocalDateTime bookingDate;
     Long userId;
     String userName;
     String userEmail;
@@ -18,5 +21,6 @@ public class BookingResponse {
     LocalDate date;
     LocalTime startTime;
     LocalTime endTime;
-    boolean slotAvailable;
+    InterviewType interviewType;
+    String location;
 }

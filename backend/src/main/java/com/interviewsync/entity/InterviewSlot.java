@@ -2,9 +2,14 @@ package com.interviewsync.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -34,6 +39,21 @@ public class InterviewSlot {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
-    @Column(nullable = false)
-    private boolean available;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "interview_type", nullable = false)
+    private InterviewType interviewType;
+
+    @Column
+    private String location;
+
+    @Column(name = "max_candidates", nullable = false)
+    private int maxCandidates;
+
+    @Column(name = "booked_count", nullable = false)
+    @Builder.Default
+    private int bookedCount = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
 }
